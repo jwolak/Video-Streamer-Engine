@@ -54,6 +54,8 @@
 #direcory
 build-*
 
+VideoEngine/*.pro.user
+
 EquinoxLogger/Build/CMakeCache.txt
 EquinoxLogger/Build/CMakeFiles/
 EquinoxLogger/Build/Makefile
