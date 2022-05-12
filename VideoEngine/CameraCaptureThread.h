@@ -1,6 +1,8 @@
 #ifndef CAMERACAPTURETHREAD_H
 #define CAMERACAPTURETHREAD_H
 
+#include "Video-Device-Handler.h"
+
 #include <QThread>
 
 class CameraCaptureThread : public QThread {
@@ -19,6 +21,10 @@ public:
 	CameraCaptureThread();
 	~CameraCaptureThread();
 	QImage image();
+
+private:
+video_streamer::VideoDeviceHandler *video_device_streamer_;
+
 };
 
 #endif // CAMERACAPTURETHREAD_H

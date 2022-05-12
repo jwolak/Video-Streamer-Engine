@@ -25,7 +25,8 @@ struct CameraCaptureThread::Private {
 };
 
 CameraCaptureThread::CameraCaptureThread()
-	: m(new Private)
+    : m(new Private),
+      video_device_streamer_ { new video_streamer::VideoDeviceHandler }
 {
 
 }
@@ -33,20 +34,25 @@ CameraCaptureThread::CameraCaptureThread()
 CameraCaptureThread::~CameraCaptureThread()
 {
 	delete m;
+    delete video_device_streamer_;
 }
 
 void CameraCaptureThread::startCapture()
 {
-	m->fd = open("/dev/video0", O_RDWR);
+    if (!video_device_streamer_->OpenDevice("/dev/video0")) {
+
+        LOG_ERROR("%s", "Failed to open the camera device");
+        return;
+    }
 
 	v4l2_format tmpfmt;
 	memset(&tmpfmt, 0, sizeof(tmpfmt));
 	tmpfmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	ioctl(m->fd, VIDIOC_G_FMT, &tmpfmt);
+    ioctl(video_device_streamer_->GetDeviceFd(), VIDIOC_G_FMT, &tmpfmt);
 	m->dstfmt = m->srcfmt = tmpfmt;
 	m->dstfmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24;
 
-	m->convert_data = v4lconvert_create(m->fd);
+    m->convert_data = v4lconvert_create(video_device_streamer_->GetDeviceFd());
 	v4lconvert_try_format(m->convert_data, &m->dstfmt, &m->srcfmt);
 	m->srcfmt = tmpfmt;
 
@@ -55,7 +61,7 @@ void CameraCaptureThread::startCapture()
 	req.count  = v4l2BufferNum;
 	req.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	req.memory = V4L2_MEMORY_MMAP;
-	ioctl(m->fd, VIDIOC_REQBUFS, &req);
+    ioctl(video_device_streamer_->GetDeviceFd(), VIDIOC_REQBUFS, &req);
 
 	struct v4l2_buffer buf;
 	for (uint32_t i = 0; i < v4l2BufferNum; i++) {
@@ -64,9 +70,9 @@ void CameraCaptureThread::startCapture()
 		buf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		buf.memory = V4L2_MEMORY_MMAP;
 		buf.index  = i;
-		ioctl(m->fd, VIDIOC_QUERYBUF, &buf);
+        ioctl(video_device_streamer_->GetDeviceFd(), VIDIOC_QUERYBUF, &buf);
 
-		m->v4l2Buffer[i] = mmap(NULL, buf.length, PROT_READ, MAP_SHARED, m->fd, buf.m.offset);
+        m->v4l2Buffer[i] = mmap(NULL, buf.length, PROT_READ, MAP_SHARED, video_device_streamer_->GetDeviceFd(), buf.m.offset);
 		m->v4l2BufferSize[i] = buf.length;
 	}
 
@@ -75,12 +81,12 @@ void CameraCaptureThread::startCapture()
 		buf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		buf.memory = V4L2_MEMORY_MMAP;
 		buf.index  = i;
-		ioctl(m->fd, VIDIOC_QBUF, &buf);
+        ioctl(video_device_streamer_->GetDeviceFd(), VIDIOC_QBUF, &buf);
 	}
 
 	enum v4l2_buf_type type;
 	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	ioctl(m->fd, VIDIOC_STREAMON, &type);
+    ioctl(video_device_streamer_->GetDeviceFd(), VIDIOC_STREAMON, &type);
 
 }
 
@@ -88,19 +94,19 @@ void CameraCaptureThread::copyBuffer()
 {
 	fd_set fds;
 	FD_ZERO(&fds);
-	FD_SET(m->fd, &fds);
+    FD_SET(video_device_streamer_->GetDeviceFd(), &fds);
 
-	while (select(m->fd + 1, &fds, NULL, NULL, NULL) < 0) {
+    while (select(video_device_streamer_->GetDeviceFd() + 1, &fds, NULL, NULL, NULL) < 0) {
 		if (isInterruptionRequested()) return;
 	}
 
-	if (FD_ISSET(m->fd, &fds)) {
+    if (FD_ISSET(video_device_streamer_->GetDeviceFd(), &fds)) {
 
 		struct v4l2_buffer buf;
 		memset(&buf, 0, sizeof(buf));
 		buf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		buf.memory = V4L2_MEMORY_MMAP;
-		ioctl(m->fd, VIDIOC_DQBUF, &buf);
+        ioctl(video_device_streamer_->GetDeviceFd(), VIDIOC_DQBUF, &buf);
 
 		{
 			QMutexLocker lock(&m->mutex);
@@ -108,7 +114,7 @@ void CameraCaptureThread::copyBuffer()
             v4lconvert_convert(m->convert_data, &m->srcfmt, &m->dstfmt, (unsigned char *)m->v4l2Buffer[buf.index], buf.bytesused, m->image.bits(), m->dstfmt.fmt.pix.sizeimage);
 		}
 
-		ioctl(m->fd, VIDIOC_QBUF, &buf);
+        ioctl(video_device_streamer_->GetDeviceFd(), VIDIOC_QBUF, &buf);
 	}
 }
 
@@ -116,12 +122,15 @@ void CameraCaptureThread::stopCapture()
 {
 	enum v4l2_buf_type type;
 	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	ioctl(m->fd, VIDIOC_STREAMOFF, &type);
+    ioctl(video_device_streamer_->GetDeviceFd(), VIDIOC_STREAMOFF, &type);
 
 	for (uint32_t i = 0; i < v4l2BufferNum; i++) munmap(m->v4l2Buffer[i], m->v4l2BufferSize[i]);
 
 	v4lconvert_destroy(m->convert_data);
-	close(m->fd);
+
+    if (!video_device_streamer_->CloseDevice()) {
+        LOG_WARNING("%s", "Failed to close the camera device");
+    }
 }
 
 void CameraCaptureThread::run()
