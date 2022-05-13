@@ -27,7 +27,8 @@ struct CameraCaptureThread::Private {
 CameraCaptureThread::CameraCaptureThread()
     : m(new Private),
       video_device_handler_ { new video_streamer::VideoDeviceHandler },
-      device_buffer_control_ { new video_streamer::DeviceBuffersControl(video_device_handler_)}
+      device_buffer_control_ { new video_streamer::DeviceBuffersControl(video_device_handler_)},
+      temporary_video_capture_buffer_ {new video_streamer::TemporaryVideoCaptureBuffer }
 {
 
 }
@@ -35,6 +36,7 @@ CameraCaptureThread::CameraCaptureThread()
 CameraCaptureThread::~CameraCaptureThread()
 {
 	delete m;
+    delete temporary_video_capture_buffer_;
     delete device_buffer_control_;
     delete video_device_handler_;
 }
@@ -47,22 +49,22 @@ void CameraCaptureThread::startCapture()
         return;
     }
 
-	v4l2_format tmpfmt;
-	memset(&tmpfmt, 0, sizeof(tmpfmt));
-	tmpfmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+//	v4l2_format tmpfmt;
+//	memset(&tmpfmt, 0, sizeof(tmpfmt));
+//	tmpfmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    if (!device_buffer_control_->SetBuffreForDevice(VIDIOC_G_FMT, &tmpfmt)) {
+    if (!device_buffer_control_->SetBuffreForDevice(VIDIOC_G_FMT, &temporary_video_capture_buffer_->GetBuffer())) {
 
         LOG_ERROR("%s", "Failed to set buffer type VIDIOC_G_FMT by SetBuffreForDevice()");
         return;
     }
 
-	m->dstfmt = m->srcfmt = tmpfmt;
+    m->dstfmt = m->srcfmt = temporary_video_capture_buffer_->GetBuffer();
 	m->dstfmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24;
 
     m->convert_data = v4lconvert_create(video_device_handler_->GetDeviceFd());
 	v4lconvert_try_format(m->convert_data, &m->dstfmt, &m->srcfmt);
-	m->srcfmt = tmpfmt;
+    m->srcfmt = temporary_video_capture_buffer_->GetBuffer();
 
 	struct v4l2_requestbuffers req;
 	memset(&req, 0, sizeof(req));

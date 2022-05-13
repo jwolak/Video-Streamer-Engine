@@ -11,6 +11,7 @@ SOURCES += main.cpp \
     MainWindow.cpp \
     ImageWidget.cpp \
     CameraCaptureThread.cpp \
+    Temporary-Video-Capture-Buffer.cpp \
     Video-Device-Handler.cpp
 
 HEADERS  += \
@@ -18,6 +19,7 @@ HEADERS  += \
     MainWindow.h \
     ImageWidget.h \
     CameraCaptureThread.h \
+    Temporary-Video-Capture-Buffer.h \
     Video-Device-Handler.h
 
 FORMS    += \
