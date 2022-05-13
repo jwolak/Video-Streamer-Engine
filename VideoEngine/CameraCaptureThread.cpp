@@ -16,9 +16,6 @@ static const int v4l2BufferNum = 2;
 struct CameraCaptureThread::Private {
 	QMutex mutex;
 	QImage image;
-	int fd;
-	void *v4l2Buffer[v4l2BufferNum];
-	uint32_t v4l2BufferSize[v4l2BufferNum];
 	v4l2_format srcfmt;
 	v4l2_format dstfmt;
 	v4lconvert_data *convert_data = nullptr;
@@ -29,7 +26,9 @@ CameraCaptureThread::CameraCaptureThread()
       video_device_handler_ { new video_streamer::VideoDeviceHandler },
       device_buffer_control_ { new video_streamer::DeviceBuffersControl(video_device_handler_)},
       temporary_video_capture_buffer_ {new video_streamer::TemporaryVideoCaptureBuffer },
-      request_video_capture_buffer_ { new video_streamer::RequestVideoCaptureBuffer }
+      request_video_capture_buffer_ { new video_streamer::RequestVideoCaptureBuffer },
+      v42lbuffer_ { new video_streamer::V4L2Buffer },
+      video_buffer_ { new video_streamer::VideoBuffer(device_buffer_control_, v42lbuffer_, video_device_handler_) }
 {
 
 }
@@ -37,6 +36,8 @@ CameraCaptureThread::CameraCaptureThread()
 CameraCaptureThread::~CameraCaptureThread()
 {
 	delete m;
+    delete video_buffer_;
+    delete v42lbuffer_;
     delete request_video_capture_buffer_;
     delete temporary_video_capture_buffer_;
     delete device_buffer_control_;
@@ -70,36 +71,17 @@ void CameraCaptureThread::startCapture()
         return;
     }
 
-	struct v4l2_buffer buf;
-	for (uint32_t i = 0; i < v4l2BufferNum; i++) {
+    if (!video_buffer_->MapBufferToMemory()) {
 
-		memset(&buf, 0, sizeof(buf));
-		buf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		buf.memory = V4L2_MEMORY_MMAP;
-		buf.index  = i;
+        LOG_ERROR("%s", "Failed to map video device buffer to memory");
+        return;
+    }
 
-        if (!device_buffer_control_->SetBuffreForDevice(VIDIOC_QUERYBUF, &buf)) {
+    if (!video_buffer_->SetUpBuffer()) {
 
-            LOG_ERROR("%s", "Failed to set buffer type VIDIOC_QUERYBUF by SetBuffreForDevice");
-            return;
-        }
-
-        m->v4l2Buffer[i] = mmap(NULL, buf.length, PROT_READ, MAP_SHARED, video_device_handler_->GetDeviceFd(), buf.m.offset);
-		m->v4l2BufferSize[i] = buf.length;
-	}
-
-	for (uint32_t i = 0; i < v4l2BufferNum; i++) {
-		memset(&buf, 0, sizeof(buf));
-		buf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		buf.memory = V4L2_MEMORY_MMAP;
-		buf.index  = i;
-
-        if (!device_buffer_control_->SetBuffreForDevice(VIDIOC_QBUF, &buf)) {
-
-            LOG_ERROR("%s", "Failed to set buffer type VIDIOC_QBUF by SetBuffreForDevice");
-            return;
-        }
-	}
+        LOG_ERROR("%s", "Failed to setup video buffer");
+        return;
+    }
 
 	enum v4l2_buf_type type;
 	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -139,7 +121,7 @@ void CameraCaptureThread::copyBuffer()
 		{
 			QMutexLocker lock(&m->mutex);
 			m->image = QImage(m->dstfmt.fmt.pix.width, m->dstfmt.fmt.pix.height, QImage::Format_RGB888);
-            v4lconvert_convert(m->convert_data, &m->srcfmt, &m->dstfmt, (unsigned char *)m->v4l2Buffer[buf.index], buf.bytesused, m->image.bits(), m->dstfmt.fmt.pix.sizeimage);
+            v4lconvert_convert(m->convert_data, &m->srcfmt, &m->dstfmt, (unsigned char *)v42lbuffer_->v4l2Buffer2[buf.index], buf.bytesused, m->image.bits(), m->dstfmt.fmt.pix.sizeimage);
 		}
 
         if (!device_buffer_control_->SetBuffreForDevice(VIDIOC_QBUF, &buf)) {
@@ -161,7 +143,10 @@ void CameraCaptureThread::stopCapture()
         return;
     }
 
-	for (uint32_t i = 0; i < v4l2BufferNum; i++) munmap(m->v4l2Buffer[i], m->v4l2BufferSize[i]);
+    if (!video_buffer_->UnmapBuffer()) {
+
+        LOG_WARNING("%s", "Failed to unmap video device buffer to memory ");
+    }
 
 	v4lconvert_destroy(m->convert_data);
 

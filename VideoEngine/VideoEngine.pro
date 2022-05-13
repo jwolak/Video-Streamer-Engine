@@ -13,6 +13,8 @@ SOURCES += main.cpp \
     CameraCaptureThread.cpp \
     Request-Video-Capture-Buffer.cpp \
     Temporary-Video-Capture-Buffer.cpp \
+    V4l2Buffer.cpp \
+    Video-Buffer.cpp \
     Video-Device-Handler.cpp
 
 HEADERS  += \
@@ -22,6 +24,8 @@ HEADERS  += \
     CameraCaptureThread.h \
     Request-Video-Capture-Buffer.h \
     Temporary-Video-Capture-Buffer.h \
+    V4l2Buffer.h \
+    Video-Buffer.h \
     Video-Device-Handler.h
 
 FORMS    += \

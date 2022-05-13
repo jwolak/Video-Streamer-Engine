@@ -5,6 +5,8 @@
 #include "Device-Buffers-Control.h"
 #include "Temporary-Video-Capture-Buffer.h"
 #include "Request-Video-Capture-Buffer.h"
+#include "Video-Buffer.h"
+#include "V4l2Buffer.h"
 
 #include <QThread>
 
@@ -30,6 +32,8 @@ private:
     video_streamer::DeviceBuffersControl *device_buffer_control_;
     video_streamer::TemporaryVideoCaptureBuffer *temporary_video_capture_buffer_;
     video_streamer::RequestVideoCaptureBuffer *request_video_capture_buffer_;
+    video_streamer::V4L2Buffer *v42lbuffer_;
+    video_streamer::VideoBuffer *video_buffer_;
 
 };
 
