@@ -4,6 +4,7 @@
 #include "Video-Device-Handler.h"
 #include "Device-Buffers-Control.h"
 #include "Temporary-Video-Capture-Buffer.h"
+#include "Request-Video-Capture-Buffer.h"
 
 #include <QThread>
 
@@ -28,7 +29,7 @@ private:
     video_streamer::VideoDeviceHandler *video_device_handler_;
     video_streamer::DeviceBuffersControl *device_buffer_control_;
     video_streamer::TemporaryVideoCaptureBuffer *temporary_video_capture_buffer_;
-
+    video_streamer::RequestVideoCaptureBuffer *request_video_capture_buffer_;
 
 };
 

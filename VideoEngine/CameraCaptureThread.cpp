@@ -28,7 +28,8 @@ CameraCaptureThread::CameraCaptureThread()
     : m(new Private),
       video_device_handler_ { new video_streamer::VideoDeviceHandler },
       device_buffer_control_ { new video_streamer::DeviceBuffersControl(video_device_handler_)},
-      temporary_video_capture_buffer_ {new video_streamer::TemporaryVideoCaptureBuffer }
+      temporary_video_capture_buffer_ {new video_streamer::TemporaryVideoCaptureBuffer },
+      request_video_capture_buffer_ { new video_streamer::RequestVideoCaptureBuffer }
 {
 
 }
@@ -36,6 +37,7 @@ CameraCaptureThread::CameraCaptureThread()
 CameraCaptureThread::~CameraCaptureThread()
 {
 	delete m;
+    delete request_video_capture_buffer_;
     delete temporary_video_capture_buffer_;
     delete device_buffer_control_;
     delete video_device_handler_;
@@ -48,10 +50,6 @@ void CameraCaptureThread::startCapture()
         LOG_ERROR("%s", "Failed to open the camera device");
         return;
     }
-
-//	v4l2_format tmpfmt;
-//	memset(&tmpfmt, 0, sizeof(tmpfmt));
-//	tmpfmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     if (!device_buffer_control_->SetBuffreForDevice(VIDIOC_G_FMT, &temporary_video_capture_buffer_->GetBuffer())) {
 
@@ -66,13 +64,7 @@ void CameraCaptureThread::startCapture()
 	v4lconvert_try_format(m->convert_data, &m->dstfmt, &m->srcfmt);
     m->srcfmt = temporary_video_capture_buffer_->GetBuffer();
 
-	struct v4l2_requestbuffers req;
-	memset(&req, 0, sizeof(req));
-	req.count  = v4l2BufferNum;
-	req.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	req.memory = V4L2_MEMORY_MMAP;
-
-    if (!device_buffer_control_->SetBuffreForDevice(VIDIOC_REQBUFS, &req)) {
+    if (!device_buffer_control_->SetBuffreForDevice(VIDIOC_REQBUFS, &request_video_capture_buffer_->GetBuffer())) {
 
         LOG_ERROR("%s", "Failed to set buffer type VIDIOC_REQBUFS by SetBuffreForDevice");
         return;
