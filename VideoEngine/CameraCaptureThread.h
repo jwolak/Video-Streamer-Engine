@@ -2,6 +2,7 @@
 #define CAMERACAPTURETHREAD_H
 
 #include "Video-Device-Handler.h"
+#include "Device-Buffers-Control.h"
 
 #include <QThread>
 
@@ -23,7 +24,8 @@ public:
 	QImage image();
 
 private:
-video_streamer::VideoDeviceHandler *video_device_streamer_;
+    video_streamer::VideoDeviceHandler *video_device_handler_;
+    video_streamer::DeviceBuffersControl *device_buffer_control_;
 
 };
 

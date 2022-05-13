@@ -35,7 +35,5 @@ bool video_streamer::VideoDeviceHandler::CloseDevice() {
 
 int video_streamer::VideoDeviceHandler::GetDeviceFd() {
 
-    LOG_DEBUG("%s", "GetDeviceFd method called");
-
     return device_fd_;
 }
