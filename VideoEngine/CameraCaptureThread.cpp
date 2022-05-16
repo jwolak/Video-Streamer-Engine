@@ -11,8 +11,6 @@
 #include <libv4lconvert.h>
 #include <stdint.h>
 
-static const int v4l2BufferNum = 2;
-
 struct CameraCaptureThread::Private {
 	QMutex mutex;
 	QImage image;
@@ -28,7 +26,8 @@ CameraCaptureThread::CameraCaptureThread()
       temporary_video_capture_buffer_ {new video_streamer::TemporaryVideoCaptureBuffer },
       request_video_capture_buffer_ { new video_streamer::RequestVideoCaptureBuffer },
       v42lbuffer_ { new video_streamer::V4L2Buffer },
-      video_buffer_ { new video_streamer::VideoBuffer(device_buffer_control_, v42lbuffer_, video_device_handler_) }
+      video_buffer_ { new video_streamer::VideoBuffer(device_buffer_control_, v42lbuffer_, video_device_handler_) },
+      copy_buffer_ { new video_streamer::CopyBuffer }
 {
 
 }
@@ -36,6 +35,7 @@ CameraCaptureThread::CameraCaptureThread()
 CameraCaptureThread::~CameraCaptureThread()
 {
 	delete m;
+    delete copy_buffer_;
     delete video_buffer_;
     delete v42lbuffer_;
     delete request_video_capture_buffer_;
@@ -106,25 +106,19 @@ void CameraCaptureThread::copyBuffer()
 
     if (FD_ISSET(video_device_handler_->GetDeviceFd(), &fds)) {
 
-		struct v4l2_buffer buf;
-		memset(&buf, 0, sizeof(buf));
-		buf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		buf.memory = V4L2_MEMORY_MMAP;
-
-        if (!device_buffer_control_->SetBuffreForDevice(VIDIOC_DQBUF, &buf)) {
+        if (!device_buffer_control_->SetBuffreForDevice(VIDIOC_DQBUF, &copy_buffer_->GetBuffer())) {
 
             LOG_ERROR("%s", "Failed to set buffer type VIDIOC_DQBUF by SetBuffreForDevice");
             return;
         }
 
-
 		{
 			QMutexLocker lock(&m->mutex);
 			m->image = QImage(m->dstfmt.fmt.pix.width, m->dstfmt.fmt.pix.height, QImage::Format_RGB888);
-            v4lconvert_convert(m->convert_data, &m->srcfmt, &m->dstfmt, (unsigned char *)v42lbuffer_->v4l2Buffer2[buf.index], buf.bytesused, m->image.bits(), m->dstfmt.fmt.pix.sizeimage);
+            v4lconvert_convert(m->convert_data, &m->srcfmt, &m->dstfmt, (unsigned char *)v42lbuffer_->v4l2Buffer2[copy_buffer_->GetBuffer().index], copy_buffer_->GetBuffer().bytesused, m->image.bits(), m->dstfmt.fmt.pix.sizeimage);
 		}
 
-        if (!device_buffer_control_->SetBuffreForDevice(VIDIOC_QBUF, &buf)) {
+        if (!device_buffer_control_->SetBuffreForDevice(VIDIOC_QBUF, &copy_buffer_->GetBuffer())) {
 
             LOG_ERROR("%s", "Failed to set buffer type VIDIOC_QBUF by SetBuffreForDevice");
             return;

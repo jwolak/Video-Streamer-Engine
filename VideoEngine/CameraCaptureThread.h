@@ -7,6 +7,7 @@
 #include "Request-Video-Capture-Buffer.h"
 #include "Video-Buffer.h"
 #include "V4l2Buffer.h"
+#include "Copy-Buffer.h"
 
 #include <QThread>
 
@@ -34,6 +35,7 @@ private:
     video_streamer::RequestVideoCaptureBuffer *request_video_capture_buffer_;
     video_streamer::V4L2Buffer *v42lbuffer_;
     video_streamer::VideoBuffer *video_buffer_;
+    video_streamer::CopyBuffer *copy_buffer_;
 
 };
 
