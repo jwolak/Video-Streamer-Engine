@@ -7,6 +7,7 @@ CONFIG += c++11
 LIBS += -lv4lconvert
 
 SOURCES += main.cpp \
+    Convert-Data.cpp \
     Copy-Buffer.cpp \
     Device-Buffers-Control.cpp \
     MainWindow.cpp \
@@ -20,6 +21,7 @@ SOURCES += main.cpp \
     Video-Device-Handler.cpp
 
 HEADERS  += \
+    Convert-Data.h \
     Copy-Buffer.h \
     Device-Buffers-Control.h \
     MainWindow.h \

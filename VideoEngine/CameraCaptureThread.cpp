@@ -14,7 +14,6 @@
 struct CameraCaptureThread::Private {
 	QMutex mutex;
 	QImage image;
-	v4lconvert_data *convert_data = nullptr;
 };
 
 CameraCaptureThread::CameraCaptureThread()
@@ -26,7 +25,8 @@ CameraCaptureThread::CameraCaptureThread()
       v42lbuffer_ { new video_streamer::V4L2Buffer },
       video_buffer_ { new video_streamer::VideoBuffer(device_buffer_control_, v42lbuffer_, video_device_handler_) },
       copy_buffer_ { new video_streamer::CopyBuffer },
-      stream_data_format_ { new video_streamer::StreamDataFormat }
+      stream_data_format_ { new video_streamer::StreamDataFormat },
+      convert_data_ { new video_streamer::ConvertData(video_device_handler_) }
 {
 
 }
@@ -34,6 +34,7 @@ CameraCaptureThread::CameraCaptureThread()
 CameraCaptureThread::~CameraCaptureThread()
 {
 	delete m;
+    delete convert_data_;
     delete stream_data_format_;
     delete copy_buffer_;
     delete video_buffer_;
@@ -61,8 +62,8 @@ void CameraCaptureThread::startCapture()
     stream_data_format_->GetDstFormat() = stream_data_format_->GetSrcFormat() = temporary_video_capture_buffer_->GetBuffer();
     stream_data_format_->SetPixelformat(V4L2_PIX_FMT_RGB24);
 
-    m->convert_data = v4lconvert_create(video_device_handler_->GetDeviceFd());
-    v4lconvert_try_format(m->convert_data, &stream_data_format_->GetDstFormat(), &stream_data_format_->GetSrcFormat());
+    convert_data_->CreateConvertData();
+    convert_data_->TryFormat(&stream_data_format_->GetDstFormat(), &stream_data_format_->GetSrcFormat());
     stream_data_format_->GetSrcFormat() = temporary_video_capture_buffer_->GetBuffer();
 
     if (!device_buffer_control_->SetBuffreForDevice(VIDIOC_REQBUFS, &request_video_capture_buffer_->GetBuffer())) {
@@ -115,7 +116,7 @@ void CameraCaptureThread::copyBuffer()
         {
             QMutexLocker lock(&m->mutex);
             m->image = QImage(stream_data_format_->GetDstFormat().fmt.pix.width, stream_data_format_->GetDstFormat().fmt.pix.height, QImage::Format_RGB888);
-            v4lconvert_convert(m->convert_data, &stream_data_format_->GetSrcFormat(), &stream_data_format_->GetDstFormat(),
+            v4lconvert_convert(convert_data_->GetConvertData(), &stream_data_format_->GetSrcFormat(), &stream_data_format_->GetDstFormat(),
                                (unsigned char *)v42lbuffer_->v4l2Buffer2[copy_buffer_->GetBuffer().index], copy_buffer_->GetBuffer().bytesused, m->image.bits(),
                                 stream_data_format_->GetDstFormat().fmt.pix.sizeimage);
         }
@@ -144,7 +145,7 @@ void CameraCaptureThread::stopCapture()
         LOG_WARNING("%s", "Failed to unmap video device buffer to memory ");
     }
 
-	v4lconvert_destroy(m->convert_data);
+    convert_data_->DisposeConvertData();
 
     if (!video_device_handler_->CloseDevice()) {
         LOG_WARNING("%s", "Failed to close the camera device");
