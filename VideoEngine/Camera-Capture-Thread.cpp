@@ -99,10 +99,12 @@ void CameraCaptureThread::CopyBuffer()
 
         {
             QMutexLocker lock(&image_handler_->GetImageMutex());
-            image_handler_->GetImage() = QImage(stream_data_format_->GetDstFormat().fmt.pix.width, stream_data_format_->GetDstFormat().fmt.pix.height, QImage::Format_RGB888);
+            image_handler_->GetImage() = QImage(stream_data_format_->GetDstFormat().fmt.pix.width,
+                                                stream_data_format_->GetDstFormat().fmt.pix.height, QImage::Format_RGB888);
+
             v4lconvert_convert(convert_data_->GetConvertData(), &stream_data_format_->GetSrcFormat(), &stream_data_format_->GetDstFormat(),
-                               (unsigned char *)v42lbuffer_->v4l2Buffer2[copy_buffer_->GetBuffer().index], copy_buffer_->GetBuffer().bytesused, image_handler_->GetImage().bits(),
-                                stream_data_format_->GetDstFormat().fmt.pix.sizeimage);
+                              (unsigned char *)v42lbuffer_->v4l2Buffer2[copy_buffer_->GetBuffer().index], copy_buffer_->GetBuffer().bytesused,
+                               image_handler_->GetImage().bits(), stream_data_format_->GetDstFormat().fmt.pix.sizeimage);
         }
 
         if (!device_buffer_control_->SetBuffreForDevice(VIDIOC_QBUF, &copy_buffer_->GetBuffer())) {

@@ -4,7 +4,6 @@
 
 ImageWidget::ImageWidget(QWidget *parent) : QWidget(parent)
 {
-
 }
 
 void ImageWidget::setImage(QImage image)

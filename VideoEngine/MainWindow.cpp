@@ -6,57 +6,29 @@
 #include <QThread>
 #include <QKeyEvent>
 #include <QFileDialog>
-#include "Camera-Capture-Thread.h"
 #include <QMessageBox>
 
-struct MainWindow::Private {
-	CameraCaptureThread capture_thread;
-};
-
 MainWindow::MainWindow(QWidget *parent)
-	: QMainWindow(parent)
-	, ui(new Ui::MainWindow)
-	, m(new Private)
+    : QMainWindow(parent),
+      ui(new Ui::MainWindow)
 {
 	ui->setupUi(this);
-	m->capture_thread.start();
+    capture_thread.start();
 
 	startTimer(1000 / 30);
 }
 
 MainWindow::~MainWindow()
 {
-	m->capture_thread.requestInterruption();
-	m->capture_thread.wait();
-	delete m;
+    capture_thread.requestInterruption();
+    capture_thread.wait();
 	delete ui;
 }
 
 void MainWindow::timerEvent(QTimerEvent*)
 {
-    QImage image = m->capture_thread.GetImageFromV4LBuffer();
+    QImage image = capture_thread.GetImageFromV4LBuffer();
 	if (!image.isNull()) {
 		ui->widget->setImage(image);
 	}
-}
-
-void MainWindow::keyPressEvent(QKeyEvent *e)
-{
-	int k = e->key();
-	if (k == Qt::Key_S) {
-		if (e->modifiers() & Qt::ControlModifier) {
-			saveas();
-		}
-	}
-	QMainWindow::keyPressEvent(e);
-
-}
-
-void MainWindow::saveas()
-{
-	QImage image = ui->widget->image();
-	if (image.isNull()) return;
-	QString path = QFileDialog::getSaveFileName(this, "Save as");
-	if (path.isEmpty()) return;
-	image.save(path);
 }

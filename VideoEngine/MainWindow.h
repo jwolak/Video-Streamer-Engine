@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "Camera-Capture-Thread.h"
 #include <QMainWindow>
 
 namespace Ui {
@@ -11,23 +12,16 @@ class MainWindow : public QMainWindow {
     Q_OBJECT
 private:
 	Ui::MainWindow *ui;
-
-	struct Private;
-	Private *m;
+    CameraCaptureThread capture_thread;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-	void saveas();
 private slots:
 
 protected:
 	void timerEvent(QTimerEvent *event);
-
-	// QWidget interface
-protected:
-	void keyPressEvent(QKeyEvent *);
 };
 
 #endif // MAINWINDOW_H
