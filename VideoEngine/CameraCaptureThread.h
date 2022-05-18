@@ -8,6 +8,7 @@
 #include "Video-Buffer.h"
 #include "V4l2Buffer.h"
 #include "Copy-Buffer.h"
+#include "Stream-Data-Format.h"
 
 #include <QThread>
 
@@ -36,6 +37,7 @@ private:
     video_streamer::V4L2Buffer *v42lbuffer_;
     video_streamer::VideoBuffer *video_buffer_;
     video_streamer::CopyBuffer *copy_buffer_;
+    video_streamer::StreamDataFormat * stream_data_format_;
 
 };
 
