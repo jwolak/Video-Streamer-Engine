@@ -10,6 +10,7 @@ SOURCES += main.cpp \
     Convert-Data.cpp \
     Copy-Buffer.cpp \
     Device-Buffers-Control.cpp \
+    Image-Handler.cpp \
     MainWindow.cpp \
     ImageWidget.cpp \
     CameraCaptureThread.cpp \
@@ -24,6 +25,7 @@ HEADERS  += \
     Convert-Data.h \
     Copy-Buffer.h \
     Device-Buffers-Control.h \
+    Image-Handler.h \
     MainWindow.h \
     ImageWidget.h \
     CameraCaptureThread.h \

@@ -10,14 +10,12 @@
 #include "Copy-Buffer.h"
 #include "Stream-Data-Format.h"
 #include "Convert-Data.h"
+#include "Image-Handler.h"
 
 #include <QThread>
 
 class CameraCaptureThread : public QThread {
 private:
-	struct Private;
-	Private *m;
-
 	void startCapture();
 	void copyBuffer();
 	void stopCapture();
@@ -40,7 +38,7 @@ private:
     video_streamer::CopyBuffer *copy_buffer_;
     video_streamer::StreamDataFormat * stream_data_format_;
     video_streamer::ConvertData *convert_data_;
-
+    video_streamer::ImageHandler *image_handler_;
 };
 
 #endif // CAMERACAPTURETHREAD_H

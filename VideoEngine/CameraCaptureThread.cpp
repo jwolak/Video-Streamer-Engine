@@ -1,23 +1,7 @@
 #include "CameraCaptureThread.h"
 
-#include <QImage>
-#include <QMutex>
-#include <unistd.h>
-#include <sys/fcntl.h>
-#include <sys/ioctl.h>
-#include <sys/mman.h>
-#include <linux/videodev2.h>
-#include <QDebug>
-#include <libv4lconvert.h>
-#include <stdint.h>
-
-struct CameraCaptureThread::Private {
-	QMutex mutex;
-	QImage image;
-};
-
 CameraCaptureThread::CameraCaptureThread()
-    : m(new Private),
+    :
       video_device_handler_ { new video_streamer::VideoDeviceHandler },
       device_buffer_control_ { new video_streamer::DeviceBuffersControl(video_device_handler_)},
       temporary_video_capture_buffer_ {new video_streamer::TemporaryVideoCaptureBuffer },
@@ -26,14 +10,14 @@ CameraCaptureThread::CameraCaptureThread()
       video_buffer_ { new video_streamer::VideoBuffer(device_buffer_control_, v42lbuffer_, video_device_handler_) },
       copy_buffer_ { new video_streamer::CopyBuffer },
       stream_data_format_ { new video_streamer::StreamDataFormat },
-      convert_data_ { new video_streamer::ConvertData(video_device_handler_) }
+      convert_data_ { new video_streamer::ConvertData(video_device_handler_) },
+      image_handler_ { new video_streamer::ImageHandler }
 {
-
 }
 
 CameraCaptureThread::~CameraCaptureThread()
 {
-	delete m;
+    delete image_handler_;
     delete convert_data_;
     delete stream_data_format_;
     delete copy_buffer_;
@@ -114,10 +98,10 @@ void CameraCaptureThread::copyBuffer()
         }
 
         {
-            QMutexLocker lock(&m->mutex);
-            m->image = QImage(stream_data_format_->GetDstFormat().fmt.pix.width, stream_data_format_->GetDstFormat().fmt.pix.height, QImage::Format_RGB888);
+            QMutexLocker lock(&image_handler_->GetImageMutex());
+            image_handler_->GetImage() = QImage(stream_data_format_->GetDstFormat().fmt.pix.width, stream_data_format_->GetDstFormat().fmt.pix.height, QImage::Format_RGB888);
             v4lconvert_convert(convert_data_->GetConvertData(), &stream_data_format_->GetSrcFormat(), &stream_data_format_->GetDstFormat(),
-                               (unsigned char *)v42lbuffer_->v4l2Buffer2[copy_buffer_->GetBuffer().index], copy_buffer_->GetBuffer().bytesused, m->image.bits(),
+                               (unsigned char *)v42lbuffer_->v4l2Buffer2[copy_buffer_->GetBuffer().index], copy_buffer_->GetBuffer().bytesused, image_handler_->GetImage().bits(),
                                 stream_data_format_->GetDstFormat().fmt.pix.sizeimage);
         }
 
@@ -164,8 +148,8 @@ void CameraCaptureThread::run()
 
 QImage CameraCaptureThread::image()
 {
-	QMutexLocker lock(&m->mutex);
+    QMutexLocker lock(&image_handler_->GetImageMutex());
 	QImage im;
-	std::swap(im, m->image);
+    std::swap(im, image_handler_->GetImage());
 	return im;
 }
