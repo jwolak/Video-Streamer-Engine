@@ -6,7 +6,7 @@
 #include <QThread>
 #include <QKeyEvent>
 #include <QFileDialog>
-#include "CameraCaptureThread.h"
+#include "Camera-Capture-Thread.h"
 #include <QMessageBox>
 
 struct MainWindow::Private {
@@ -32,9 +32,9 @@ MainWindow::~MainWindow()
 	delete ui;
 }
 
-void MainWindow::timerEvent(QTimerEvent *event)
+void MainWindow::timerEvent(QTimerEvent*)
 {
-	QImage image = m->capture_thread.image();
+    QImage image = m->capture_thread.GetImageFromV4LBuffer();
 	if (!image.isNull()) {
 		ui->widget->setImage(image);
 	}

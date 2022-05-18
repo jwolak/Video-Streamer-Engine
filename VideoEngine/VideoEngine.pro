@@ -7,13 +7,13 @@ CONFIG += c++11
 LIBS += -lv4lconvert
 
 SOURCES += main.cpp \
+    Camera-Capture-Thread.cpp \
     Convert-Data.cpp \
     Copy-Buffer.cpp \
     Device-Buffers-Control.cpp \
     Image-Handler.cpp \
     MainWindow.cpp \
     ImageWidget.cpp \
-    CameraCaptureThread.cpp \
     Request-Video-Capture-Buffer.cpp \
     Stream-Data-Format.cpp \
     Temporary-Video-Capture-Buffer.cpp \
@@ -22,13 +22,13 @@ SOURCES += main.cpp \
     Video-Device-Handler.cpp
 
 HEADERS  += \
+    Camera-Capture-Thread.h \
     Convert-Data.h \
     Copy-Buffer.h \
     Device-Buffers-Control.h \
     Image-Handler.h \
     MainWindow.h \
     ImageWidget.h \
-    CameraCaptureThread.h \
     Request-Video-Capture-Buffer.h \
     Stream-Data-Format.h \
     Temporary-Video-Capture-Buffer.h \

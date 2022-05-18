@@ -1,4 +1,4 @@
-#include "CameraCaptureThread.h"
+#include "Camera-Capture-Thread.h"
 
 CameraCaptureThread::CameraCaptureThread()
     :
@@ -29,7 +29,7 @@ CameraCaptureThread::~CameraCaptureThread()
     delete video_device_handler_;
 }
 
-void CameraCaptureThread::startCapture()
+void CameraCaptureThread::StartCapture()
 {
     if (!video_device_handler_->OpenDevice("/dev/video0")) {
 
@@ -79,7 +79,7 @@ void CameraCaptureThread::startCapture()
 
 }
 
-void CameraCaptureThread::copyBuffer()
+void CameraCaptureThread::CopyBuffer()
 {
 	fd_set fds;
 	FD_ZERO(&fds);
@@ -113,7 +113,7 @@ void CameraCaptureThread::copyBuffer()
 	}
 }
 
-void CameraCaptureThread::stopCapture()
+void CameraCaptureThread::StopCapture()
 {
 	enum v4l2_buf_type type;
 	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -138,18 +138,19 @@ void CameraCaptureThread::stopCapture()
 
 void CameraCaptureThread::run()
 {
-	startCapture();
-	while (1) {
+    StartCapture();
+
+    while (true) {
 		if (isInterruptionRequested()) break;
-		copyBuffer();
+        CopyBuffer();
 	}
-	stopCapture();
+
+    StopCapture();
 }
 
-QImage CameraCaptureThread::image()
-{
+QImage CameraCaptureThread::GetImageFromV4LBuffer() {
     QMutexLocker lock(&image_handler_->GetImageMutex());
-	QImage im;
-    std::swap(im, image_handler_->GetImage());
-	return im;
+    QImage q_image;
+    std::swap(q_image, image_handler_->GetImage());
+    return q_image;
 }

@@ -16,17 +16,17 @@
 
 class CameraCaptureThread : public QThread {
 private:
-	void startCapture();
-	void copyBuffer();
-	void stopCapture();
+    void StartCapture();
+    void CopyBuffer();
+    void StopCapture();
 
 protected:
-	void run();
+    void run();
 
 public:
 	CameraCaptureThread();
 	~CameraCaptureThread();
-	QImage image();
+    QImage GetImageFromV4LBuffer();
 
 private:
     video_streamer::VideoDeviceHandler *video_device_handler_;
@@ -36,7 +36,7 @@ private:
     video_streamer::V4L2Buffer *v42lbuffer_;
     video_streamer::VideoBuffer *video_buffer_;
     video_streamer::CopyBuffer *copy_buffer_;
-    video_streamer::StreamDataFormat * stream_data_format_;
+    video_streamer::StreamDataFormat *stream_data_format_;
     video_streamer::ConvertData *convert_data_;
     video_streamer::ImageHandler *image_handler_;
 };
