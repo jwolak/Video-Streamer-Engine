@@ -10,9 +10,7 @@ v4l2_format &video_streamer::StreamDataFormat::GetDstFormat() {
     return dst_frmt_;
 }
 
-bool video_streamer::StreamDataFormat::SetPixelformat(__u32 pixel_format) {
+void video_streamer::StreamDataFormat::SetPixelformat(__u32 pixel_format) {
 
      dst_frmt_.fmt.pix.pixelformat = pixel_format;
-
-    return true;
 }

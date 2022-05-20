@@ -1,4 +1,7 @@
 #include "Camera-Capture-Thread.h"
+#include <string>
+
+static const std::string kDevicePath = "/dev/video0";
 
 CameraCaptureThread::CameraCaptureThread()
     :
@@ -31,7 +34,7 @@ CameraCaptureThread::~CameraCaptureThread()
 
 void CameraCaptureThread::StartCapture()
 {
-    if (!video_device_handler_->OpenDevice("/dev/video0")) {
+    if (!video_device_handler_->OpenDevice(kDevicePath)) {
 
         LOG_ERROR("%s", "Failed to open the camera device");
         return;
@@ -143,7 +146,10 @@ void CameraCaptureThread::run()
     StartCapture();
 
     while (true) {
-		if (isInterruptionRequested()) break;
+        if (isInterruptionRequested()) {
+            break;
+        }
+
         CopyBuffer();
 	}
 

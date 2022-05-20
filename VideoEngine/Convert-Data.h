@@ -14,7 +14,7 @@ public:
     }
 
     bool CreateConvertData();
-    bool DisposeConvertData();
+    void DisposeConvertData();
     v4lconvert_data *GetConvertData();
     bool TryFormat(v4l2_format *dst_fmt, v4l2_format *src_fmt);
 

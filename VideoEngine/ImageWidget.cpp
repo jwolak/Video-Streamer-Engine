@@ -17,7 +17,7 @@ QImage ImageWidget::image() const
 	return image_;
 }
 
-void ImageWidget::paintEvent(QPaintEvent *event)
+void ImageWidget::paintEvent(QPaintEvent *)
 {
 	int iw = image_.width();
 	int ih = image_.height();

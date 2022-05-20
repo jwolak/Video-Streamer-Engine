@@ -11,7 +11,7 @@ public:
     StreamDataFormat() {}
     v4l2_format &GetSrcFormat();
     v4l2_format &GetDstFormat();
-    bool SetPixelformat(__u32);
+    void SetPixelformat(__u32);
 
 private:
     v4l2_format src_frmt_;
