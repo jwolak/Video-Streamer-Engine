@@ -8,6 +8,12 @@ bool video_streamer::VideoDeviceHandler::OpenDevice(std::string device_path) {
     LOG_DEBUG("%s", "OpenDevice method called");
     LOG_DEBUG("%s%s", "Device path parameter: ", device_path.c_str());
 
+    if (device_path.empty()) {
+
+      LOG_ERROR("%s", "Device path parameter is empty");
+      return false;
+    }
+
     device_fd_ = open(device_path.c_str(), O_RDWR);
 
     if (device_fd_ < 0) {
