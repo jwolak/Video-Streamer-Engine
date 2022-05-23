@@ -1,5 +1,5 @@
 # Video streamer engine based on V4L2
-**Base project for video processing. Video caputure powered by Video4Linux**
+**Base project for video processing. Video capture powered by Video4Linux**
 
 ## Features
 
