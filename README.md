@@ -29,8 +29,6 @@ make
 ## Example:
 
 [![N|Solid](https://raw.githubusercontent.com/jwolak/Video-Streamer-Engine/main/VideoEngineScreen_1.png?token=GHSAT0AAAAAABUI7IMTZUD7XND44YLDNUR4YULTLJA)](https://nodesource.com/products/nsolid)
-
-[![N|Solid](https://raw.githubusercontent.com/jwolak/Video-Streamer-Engine/main/VideoEngineScreen_2.png?token=GHSAT0AAAAAABUI7IMSBJSPT6B7ZASXZFQ2YULTMBQ)](https://nodesource.com/products/nsolid)
 ```
 ## License
 
