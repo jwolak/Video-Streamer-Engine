@@ -1,4 +1,4 @@
-#include "ImageWidget.h"
+#include "headers/ImageWidget.h"
 
 #include <QPainter>
 

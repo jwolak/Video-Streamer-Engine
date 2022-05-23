@@ -1,4 +1,4 @@
-#include "Camera-Capture-Thread.h"
+#include "headers/Camera-Capture-Thread.h"
 #include <string>
 
 static const std::string kDevicePath = "/dev/video0";

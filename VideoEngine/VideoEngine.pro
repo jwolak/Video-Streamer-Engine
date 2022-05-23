@@ -1,46 +1,63 @@
+#-------------------------------------------------
+#
+# Project created by QtCreator 2016-06-07T18:10:12
+#
+#-------------------------------------------------
 
-TARGET = VideoEngine
+QT       += core gui
+
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
+TARGET = VideoEngine.x86
 TEMPLATE = app
-QT += core gui widgets
 CONFIG += c++11
-
 LIBS += -lv4lconvert
 
-SOURCES += main.cpp \
-    Camera-Capture-Thread.cpp \
-    Convert-Data.cpp \
-    Copy-Buffer.cpp \
-    Device-Buffers-Control.cpp \
-    Image-Handler.cpp \
-    MainWindow.cpp \
-    ImageWidget.cpp \
-    Request-Video-Capture-Buffer.cpp \
-    Stream-Data-Format.cpp \
-    Temporary-Video-Capture-Buffer.cpp \
-    V4l2Buffer.cpp \
-    Video-Buffer.cpp \
-    Video-Device-Handler.cpp
 
-HEADERS  += \
-    Camera-Capture-Thread.h \
-    Convert-Data.h \
-    Copy-Buffer.h \
-    Device-Buffers-Control.h \
-    Image-Handler.h \
-    MainWindow.h \
-    ImageWidget.h \
-    Request-Video-Capture-Buffer.h \
-    Stream-Data-Format.h \
-    Temporary-Video-Capture-Buffer.h \
-    V4l2Buffer.h \
-    Video-Buffer.h \
-    Video-Device-Handler.h
+SOURCES +=\
+    source/Camera-Capture-Thread.cpp \
+    source/Convert-Data.cpp \
+    source/Copy-Buffer.cpp \
+    source/Device-Buffers-Control.cpp \
+    source/Image-Handler.cpp \
+    source/ImageWidget.cpp \
+    source/Request-Video-Capture-Buffer.cpp \
+    source/Stream-Data-Format.cpp \
+    source/Temporary-Video-Capture-Buffer.cpp \
+    source/V4l2Buffer.cpp \
+    source/Video-Buffer.cpp \
+    source/Video-Device-Handler.cpp \
+    source/camviewer.cpp \
+    source/main.cpp \
+    source/mainwindow.cpp
 
-FORMS    += \
-    MainWindow.ui
+HEADERS  +=\
+    headers/Camera-Capture-Thread.h \
+    headers/Convert-Data.h \
+    headers/Copy-Buffer.h \
+    headers/Device-Buffers-Control.h \
+    headers/Image-Handler.h \
+    headers/ImageWidget.h \
+    headers/Request-Video-Capture-Buffer.h \
+    headers/Stream-Data-Format.h \
+    headers/Temporary-Video-Capture-Buffer.h \
+    headers/V4l2Buffer.h \
+    headers/Video-Buffer.h \
+    headers/Video-Device-Handler.h \
+    headers/camviewer.h \
+    headers/mainwindow.h
+
+FORMS    += mainwindow.ui
+
+LIBS += -L/usr/local/lib
 
 INCLUDEPATH += /home/janusz/Downloads/v4l-utils-bin/include
 LIBS += -L"/tmp/v4l-utils-bin/lib/"
+
+
+QT_CONFIG -= no-pkg-config
+CONFIG  += link_pkgconfig
+
 
 unix:!macx: LIBS += -L$$PWD/../EquinoxLogger/Build/ -lEquinoxLogger
 
