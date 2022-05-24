@@ -1,5 +1,5 @@
 /*
- * Device-Buffers-Control-Tests.cpp
+ * DeviceBuffersControlMock.h
  *
  *  Created on: 2022
  *      Author: Janusz Wolak
@@ -37,42 +37,22 @@
  *
  */
 
-#include "../../../VideoEngine/source/Device-Buffers-Control.cpp"
+#ifndef SOURCE_MOCKS_DEVICEBUFFERSCONTROLMOCK_H_
+#define SOURCE_MOCKS_DEVICEBUFFERSCONTROLMOCK_H_
 
-#include "../Mocks/VideoDeviceHandlerMock.h"
+#include "../../../VideoEngine/headers/Device-Buffers-Control.h"
 
-#include <linux/videodev2.h>
+#include "gmock/gmock.h"
 
-#include <gtest/gtest.h>
+namespace video_engine_tests_mocks {
 
-#include <memory>
-#include <string>
-#include <cstring>
-
-using ::testing::Return;
-using ::testing::_;
-
-namespace device_buffers_control_tests {
-
-class DeviceBuffersControlTests : public ::testing::Test {
- public:
-  DeviceBuffersControlTests() : video_device_handler_mock { new video_engine_tests_mocks::VideoDeviceHandlerMock },
-  device_buffers_control { new video_streamer::DeviceBuffersControl(video_device_handler_mock.get()) } {}
-
-  std::shared_ptr<video_engine_tests_mocks::VideoDeviceHandlerMock> video_device_handler_mock;
-  std::unique_ptr<video_streamer::DeviceBuffersControl> device_buffers_control;
+class DeviceBuffersControlMock : public video_streamer::DeviceBuffersControl {
+public:
+  MOCK_METHOD(bool, SetBuffreForDevice, (unsigned long int, void*));
 };
 
-/* Will not work without interfaces for DevieBuffersControl class*/
-TEST_F(DeviceBuffersControlTests, DISABLED_Call_SetBuffreForDevice) {
+} /*namespace video_engine_tests_mocks */
 
-  v4l2_format tmp_frmt_buffer;
 
-  std::memset(&tmp_frmt_buffer, 0, sizeof(tmp_frmt_buffer));
-  tmp_frmt_buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-  EXPECT_CALL(*video_device_handler_mock, GetDeviceFd()).WillOnce(Return(1));
-  device_buffers_control->SetBuffreForDevice(VIDIOC_G_FMT, &tmp_frmt_buffer);
-}
-
-} /*namespace device_buffers_control_tests*/
+#endif /* SOURCE_MOCKS_DEVICEBUFFERSCONTROLMOCK_H_ */

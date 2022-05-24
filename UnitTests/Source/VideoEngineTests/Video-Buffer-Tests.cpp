@@ -1,5 +1,5 @@
 /*
- * Device-Buffers-Control-Tests.cpp
+ * Video-Buffer-Tests.cpp
  *
  *  Created on: 2022
  *      Author: Janusz Wolak
@@ -37,9 +37,10 @@
  *
  */
 
-#include "../../../VideoEngine/source/Device-Buffers-Control.cpp"
+#include "../../../VideoEngine/source/Video-Buffer.cpp"
 
 #include "../Mocks/VideoDeviceHandlerMock.h"
+#include "../Mocks/DeviceBuffersControlMock.h"
 
 #include <linux/videodev2.h>
 
@@ -52,27 +53,29 @@
 using ::testing::Return;
 using ::testing::_;
 
-namespace device_buffers_control_tests {
+namespace video_buffer_tests {
 
-class DeviceBuffersControlTests : public ::testing::Test {
+class VideoBufferTests : public ::testing::Test {
  public:
-  DeviceBuffersControlTests() : video_device_handler_mock { new video_engine_tests_mocks::VideoDeviceHandlerMock },
-  device_buffers_control { new video_streamer::DeviceBuffersControl(video_device_handler_mock.get()) } {}
+  VideoBufferTests()
+      :
+      video_device_handler_mock { new video_engine_tests_mocks::VideoDeviceHandlerMock },
+      device_buffers_control_mock { new video_engine_tests_mocks::DeviceBuffersControlMock },
+      v42lbuffer { new video_streamer::V4L2Buffer },
+      video_buffer { new video_streamer::VideoBuffer { device_buffers_control_mock.get(), v42lbuffer.get(), video_device_handler_mock.get() } } {
+  }
 
   std::shared_ptr<video_engine_tests_mocks::VideoDeviceHandlerMock> video_device_handler_mock;
-  std::unique_ptr<video_streamer::DeviceBuffersControl> device_buffers_control;
+  std::shared_ptr<video_engine_tests_mocks::DeviceBuffersControlMock> device_buffers_control_mock;
+  std::shared_ptr<video_streamer::V4L2Buffer> v42lbuffer;
+  std::unique_ptr<video_streamer::VideoBuffer> video_buffer;
 };
 
-/* Will not work without interfaces for DevieBuffersControl class*/
-TEST_F(DeviceBuffersControlTests, DISABLED_Call_SetBuffreForDevice) {
+/* Will not work without interfaces */
+TEST_F(VideoBufferTests, DISABLED_Call_MapBufferToMemory) {
 
-  v4l2_format tmp_frmt_buffer;
-
-  std::memset(&tmp_frmt_buffer, 0, sizeof(tmp_frmt_buffer));
-  tmp_frmt_buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-
-  EXPECT_CALL(*video_device_handler_mock, GetDeviceFd()).WillOnce(Return(1));
-  device_buffers_control->SetBuffreForDevice(VIDIOC_G_FMT, &tmp_frmt_buffer);
+  EXPECT_CALL(*device_buffers_control_mock.get(), SetBuffreForDevice(_,_)).WillOnce(Return(false));
+  ASSERT_FALSE(video_buffer->MapBufferToMemory());
 }
 
-} /*namespace device_buffers_control_tests*/
+} /*namespace video_buffer_tests*/
